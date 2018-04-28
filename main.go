@@ -87,14 +87,12 @@ func handleConnection(conn *net.TCPConn) {
 	uri = retrieveURIRequestLine(requestArray[0])
 	ver = retrieveVersionRequestLine(requestArray[0])
 
-	//Write
-	_, err = conn.Write([]byte(ver + " 200 OK\n"))
-	checkError(err)
-	_, err = conn.Write([]byte("Content-Type: text/html\n"))
-	checkError(err)
-	_, err = conn.Write([]byte("\n"))
-	checkError(err)
+	returnResponse(conn, method, uri, ver)
 
+	fmt.Println("<<<< end")
+}
+
+func returnResponse(conn *net.TCPConn, method string, uri string, ver string) {
 	switch method {
 	case "GET":
 		filePath, _ := os.Getwd()
@@ -103,18 +101,27 @@ func handleConnection(conn *net.TCPConn) {
 			fmt.Println("no such file: ", err)
 			break
 		}
-		// 外部テンプレートファイルの読み込み
-		idat, err := ioutil.ReadFile(filePath)
+
+		// status line
+		_, err := conn.Write([]byte(ver + " 200 OK\n"))
 		checkError(err)
-		_, err = conn.Write([]byte(idat))
+
+		// header
+		_, err = conn.Write([]byte("Content-Type: text/html\n"))
+		checkError(err)
+		_, err = conn.Write([]byte("\n"))
+		checkError(err)
+
+		// body
+		body, err := ioutil.ReadFile(filePath)
+		checkError(err)
+		_, err = conn.Write([]byte(body))
 		checkError(err)
 	default:
-		_, err = conn.Write([]byte("<h1>default</h1>\n"))
+		_, err := conn.Write([]byte("<h1>default</h1>\n"))
 		checkError(err)
 		fmt.Println(method)
 	}
-
-	fmt.Println("<<<< end")
 }
 
 func checkError(err error) {
