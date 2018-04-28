@@ -7,7 +7,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"text/template"
 )
 
 func main() {
@@ -38,6 +37,30 @@ func handleListener(listener *net.TCPListener) error {
 	}
 }
 
+func retrieveMethodRequestLine(line string) (method string) {
+	splitMethod := strings.Split(line, " ")
+	return splitMethod[0]
+}
+
+func retrieveURIRequestLine(line string) (uri string) {
+	splitMethod := strings.Split(line, " ")
+	return splitMethod[1]
+}
+
+func retrieveVersionRequestLine(line string) (ver string) {
+	splitMethod := strings.Split(line, " ")
+	return splitMethod[2]
+}
+
+// func retrieveContentLength(line string) {
+// 	regexpContentLen := regexp.MustCompile(`Content-Length`)
+// 	if regexpContentLen.MatchString(line) {
+// 		contentLength := strings.Split(line, ":\\s")[1]
+// 		fmt.Println("content get :", contentLength)
+// 		return contentLength
+// 	}
+// }
+
 func handleConnection(conn *net.TCPConn) {
 	defer conn.Close()
 	fmt.Println("start >>>")
@@ -46,67 +69,50 @@ func handleConnection(conn *net.TCPConn) {
 	lineLen, err := conn.Read(lineBuf)
 	checkError(err)
 
-	line := lineBuf[:lineLen]
-	//	fmt.Println(string(line))
+	line := string(lineBuf[:lineLen])
 
-	regexpContentLen := regexp.MustCompile(`Content-Length`)
-	//リクエストメソッド　取得する　とりあえずは
-	requestMethod := regexp.MustCompile(`GET`)
+	// read確認用
+	fmt.Println(line)
+
 	var method string
-	var path string
+	var uri string
+	var ver string
+	var requestArray []string
 
-	for _, v := range regexp.MustCompile("\r\n|\n\r|\n|\r").Split(string(line), -1) {
-		fmt.Println(string(v))
-		if requestMethod.MatchString(v) {
-			splitMethod := strings.Split(v, " ")
-			method = splitMethod[0]
-			path = splitMethod[1]
-		}
-		if regexpContentLen.MatchString(v) {
-			contentLength := strings.Split(v, ":\\s")[1]
-			fmt.Println("content get :", contentLength)
-		}
+	for _, v := range regexp.MustCompile("\r\n|\n\r|\n|\r").Split(line, -1) {
+		requestArray = append(requestArray, v)
 	}
 
+	method = retrieveMethodRequestLine(requestArray[0])
+	uri = retrieveURIRequestLine(requestArray[0])
+	ver = retrieveVersionRequestLine(requestArray[0])
+
 	//Write
-	// response, err := conn.Write([]byte(line))
-	_, err = conn.Write([]byte("HTTP/1.0 200 OK\n"))
+	_, err = conn.Write([]byte(ver + " 200 OK\n"))
 	checkError(err)
 	_, err = conn.Write([]byte("Content-Type: text/html\n"))
 	checkError(err)
 	_, err = conn.Write([]byte("\n"))
 	checkError(err)
 
-	fmt.Println("method", method)
-
 	switch method {
 	case "GET":
 		filePath, _ := os.Getwd()
-		filePath = filePath + path
+		filePath = filePath + uri
 		if _, err := os.Stat(filePath); err != nil {
 			fmt.Println("no such file: ", err)
 			break
 		}
 		// 外部テンプレートファイルの読み込み
 		idat, err := ioutil.ReadFile(filePath)
-		//		_, err = conn.Write([]byte("<h1>Hello World!!</h1>\n"))
-
+		checkError(err)
 		_, err = conn.Write([]byte(idat))
 		checkError(err)
-		fmt.Println(method)
-
-		// テンプレート出力
-		var t = template.Must(template.ParseFiles(filePath))
-		if err := t.Execute(os.Stdout, nil); err != nil {
-			fmt.Println(err.Error())
-		}
 	default:
 		_, err = conn.Write([]byte("<h1>default</h1>\n"))
 		checkError(err)
 		fmt.Println(method)
 	}
-	//	_, err = conn.Write([]byte("<h1>Hello World!!</h1>\n"))
-	//	checkError(err)
 
 	fmt.Println("<<<< end")
 }
