@@ -38,18 +38,24 @@ func handleListener(listener *net.TCPListener) error {
 }
 
 func retrieveMethodRequestLine(line string) (method string) {
-	splitMethod := strings.Split(line, " ")
-	return splitMethod[0]
+	split := strings.Split(line, " ")
+	return split[0]
 }
 
 func retrieveURIRequestLine(line string) (uri string) {
-	splitMethod := strings.Split(line, " ")
-	return splitMethod[1]
+	split := strings.Split(line, " ")
+	return split[1]
 }
 
 func retrieveVersionRequestLine(line string) (ver string) {
-	splitMethod := strings.Split(line, " ")
-	return splitMethod[2]
+	split := strings.Split(line, " ")
+	return split[2]
+}
+
+func retrieveTypeRequestLine(uri string) (extension string) {
+	start := strings.LastIndex(uri, ".")
+	r := []rune(uri)
+	return string(r[start:])
 }
 
 // func retrieveContentLength(line string) {
@@ -76,6 +82,7 @@ func handleConnection(conn *net.TCPConn) {
 
 	var method string
 	var uri string
+	var contentType string
 	var ver string
 	var requestArray []string
 
@@ -85,6 +92,8 @@ func handleConnection(conn *net.TCPConn) {
 
 	method = retrieveMethodRequestLine(requestArray[0])
 	uri = retrieveURIRequestLine(requestArray[0])
+	contentType = retrieveTypeRequestLine(uri)
+	fmt.Println("aaaaaaaa", contentType)
 	ver = retrieveVersionRequestLine(requestArray[0])
 
 	returnResponse(conn, method, uri, ver)
