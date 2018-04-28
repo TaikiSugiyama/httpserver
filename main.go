@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"regexp"
@@ -87,13 +88,20 @@ func handleConnection(conn *net.TCPConn) {
 			break
 		}
 		// 外部テンプレートファイルの読み込み
-		var t = template.Must(template.ParseFiles(filePath))
+		idat, err := ioutil.ReadFile(filePath)
+		//		_, err = conn.Write([]byte("<h1>Hello World!!</h1>\n"))
+
+		_, err = conn.Write([]byte(idat))
+		checkError(err)
+		fmt.Println(method)
+
 		// テンプレート出力
+		var t = template.Must(template.ParseFiles(filePath))
 		if err := t.Execute(os.Stdout, nil); err != nil {
 			fmt.Println(err.Error())
 		}
 	default:
-		_, err = conn.Write([]byte("<h1>Hello World!!</h1>\n"))
+		_, err = conn.Write([]byte("<h1>default</h1>\n"))
 		checkError(err)
 		fmt.Println(method)
 	}
