@@ -10,66 +10,68 @@ import (
 func ReturnResponse(conn *net.TCPConn, method string, uri string, ver string, contentType string) {
 	pwd, _ := os.Getwd()
 	filePath := pwd + uri
+
 	switch method {
 	case "GET":
 		if _, err := os.Stat(filePath); err != nil {
-			_, err := conn.Write([]byte(ver + " 404 Not Found\n"))
-			checkError(err)
+			checkError(err, ver, conn)
+			body, err := ioutil.ReadFile(pwd + "/notfound.html")
+			checkError(err, ver, conn)
+			_, err = conn.Write([]byte(ver + " 404 Not Found\n"))
+			checkError(err, ver, conn)
 
 			// header
 			_, err = conn.Write([]byte("Content-Type: " + contentType + "\n"))
-			checkError(err)
+			checkError(err, ver, conn)
 			_, err = conn.Write([]byte("\n"))
-			checkError(err)
+			checkError(err, ver, conn)
 
 			// body
-			body, err := ioutil.ReadFile(pwd + "/notfound.html")
-			checkError(err)
 			_, err = conn.Write([]byte(body))
-			checkError(err)
+			checkError(err, ver, conn)
 			break
 		}
 
+		body, err := ioutil.ReadFile(filePath)
+		checkError(err, ver, conn)
 		// status line
-		_, err := conn.Write([]byte(ver + " 200 OK\n"))
-		checkError(err)
+		_, err = conn.Write([]byte(ver + " 200 OK\n"))
+		checkError(err, ver, conn)
 
 		// header
 		_, err = conn.Write([]byte("Content-Type: " + contentType + "\n"))
-		checkError(err)
+		checkError(err, ver, conn)
 		_, err = conn.Write([]byte("\n"))
-		checkError(err)
+		checkError(err, ver, conn)
 
 		// body
-		body, err := ioutil.ReadFile(filePath)
-		checkError(err)
+
 		_, err = conn.Write([]byte(body))
-		checkError(err)
+		checkError(err, ver, conn)
 	case "HEAD":
 		if _, err := os.Stat(filePath); err != nil {
-			_, err := conn.Write([]byte(ver + " 404 Not Found\n"))
-			checkError(err)
+			_, err = conn.Write([]byte(ver + " 404 Not Found\n"))
+			checkError(err, ver, conn)
 			break
 		}
-		// status line
-		_, err := conn.Write([]byte(ver + " 200 OK\n"))
-		checkError(err)
-		_, err = conn.Write([]byte("\n"))
-		checkError(err)
 		body, err := ioutil.ReadFile(filePath)
-		checkError(err)
+		checkError(err, ver, conn)
+		// status line
+		_, err = conn.Write([]byte(ver + " 200 OK\n"))
+		checkError(err, ver, conn)
+		_, err = conn.Write([]byte("\n"))
+		checkError(err, ver, conn)
 		_, err = conn.Write([]byte(body))
-		checkError(err)
+		checkError(err, ver, conn)
 	default:
 		_, err := conn.Write([]byte(ver + " 405 Method Not Allowed\n"))
-		checkError(err)
+		checkError(err, ver, conn)
 		fmt.Println(method)
 	}
 }
 
-func checkError(err error) {
+func checkError(err error, ver string, conn *net.TCPConn) {
 	if err != nil {
-		fmt.Printf("fatal: error %s\n", err.Error())
-		os.Exit(1)
+		fmt.Printf("fatal: error %s\n", err)
 	}
 }
