@@ -6,7 +6,8 @@ import (
 	"net"
 	"os"
 	"regexp"
-	"strings"
+
+	"./handler"
 )
 
 func main() {
@@ -36,36 +37,6 @@ func handleListener(listener *net.TCPListener) error {
 		go handleConnection(conn)
 	}
 }
-
-func retrieveMethodRequestLine(line string) (method string) {
-	split := strings.Split(line, " ")
-	return split[0]
-}
-
-func retrieveURIRequestLine(line string) (uri string) {
-	split := strings.Split(line, " ")
-	return split[1]
-}
-
-func retrieveVersionRequestLine(line string) (ver string) {
-	split := strings.Split(line, " ")
-	return split[2]
-}
-
-func retrieveTypeRequestLine(uri string) (extension string) {
-	start := strings.LastIndex(uri, ".")
-	r := []rune(uri)
-	return string(r[start+1:])
-}
-
-// func retrieveContentLength(line string) {
-// 	regexpContentLen := regexp.MustCompile(`Content-Length`)
-// 	if regexpContentLen.MatchString(line) {
-// 		contentLength := strings.Split(line, ":\\s")[1]
-// 		fmt.Println("content get :", contentLength)
-// 		return contentLength
-// 	}
-// }
 
 func handleConnection(conn *net.TCPConn) {
 	defer conn.Close()
@@ -97,10 +68,10 @@ func handleConnection(conn *net.TCPConn) {
 		requestArray = append(requestArray, v)
 	}
 
-	method = retrieveMethodRequestLine(requestArray[0])
-	uri = retrieveURIRequestLine(requestArray[0])
-	contentType = typeMap[retrieveTypeRequestLine(uri)]
-	ver = retrieveVersionRequestLine(requestArray[0])
+	method = handler.RetrieveMethodRequestLine(requestArray[0])
+	uri = handler.RetrieveURIRequestLine(requestArray[0])
+	contentType = typeMap[handler.RetrieveTypeRequestLine(uri)]
+	ver = handler.RetrieveVersionRequestLine(requestArray[0])
 	fmt.Println(contentType)
 
 	returnResponse(conn, method, uri, ver, contentType)
