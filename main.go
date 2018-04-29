@@ -93,15 +93,14 @@ func handleConnection(conn *net.TCPConn) {
 	method = retrieveMethodRequestLine(requestArray[0])
 	uri = retrieveURIRequestLine(requestArray[0])
 	contentType = retrieveTypeRequestLine(uri)
-	fmt.Println("aaaaaaaa", contentType)
 	ver = retrieveVersionRequestLine(requestArray[0])
 
-	returnResponse(conn, method, uri, ver)
+	returnResponse(conn, method, uri, ver, contentType)
 
 	fmt.Println("<<<< end")
 }
 
-func returnResponse(conn *net.TCPConn, method string, uri string, ver string) {
+func returnResponse(conn *net.TCPConn, method string, uri string, ver string, contentType string) {
 	switch method {
 	case "GET":
 		filePath, _ := os.Getwd()
@@ -116,7 +115,7 @@ func returnResponse(conn *net.TCPConn, method string, uri string, ver string) {
 		checkError(err)
 
 		// header
-		_, err = conn.Write([]byte("Content-Type: text/html\n"))
+		_, err = conn.Write([]byte("Content-Type: " + contentType + "\n"))
 		checkError(err)
 		_, err = conn.Write([]byte("\n"))
 		checkError(err)
