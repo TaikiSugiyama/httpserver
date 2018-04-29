@@ -11,6 +11,20 @@ func ReturnResponse(conn *net.TCPConn, method string, uri string, ver string, co
 	pwd, _ := os.Getwd()
 	filePath := pwd + uri
 
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Println("Recover!:", err)
+
+			_, err = conn.Write([]byte(ver + " 500 Internal Server Error\n"))
+
+			_, err = conn.Write([]byte("Content-Type: text/html \n"))
+			_, err = conn.Write([]byte("\n"))
+			_, err = conn.Write([]byte("<html><head><h1>Internal Server Error</h1></head></html>"))
+
+		}
+	}()
+
 	switch method {
 	case "GET":
 		if _, err := os.Stat(filePath); err != nil {
@@ -33,6 +47,8 @@ func ReturnResponse(conn *net.TCPConn, method string, uri string, ver string, co
 		}
 
 		body, err := ioutil.ReadFile(filePath)
+
+		// panic("Panic!")
 		checkError(err, ver, conn)
 		// status line
 		_, err = conn.Write([]byte(ver + " 200 OK\n"))
@@ -45,7 +61,6 @@ func ReturnResponse(conn *net.TCPConn, method string, uri string, ver string, co
 		checkError(err, ver, conn)
 
 		// body
-
 		_, err = conn.Write([]byte(body))
 		checkError(err, ver, conn)
 	case "HEAD":
