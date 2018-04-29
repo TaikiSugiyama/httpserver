@@ -30,4 +30,8 @@ func TestRetrieveTypeRequestLine(t *testing.T) {
 	if retrieveTypeRequestLine("/test.css") != ".css" {
 		t.Fatal("retrieveTypeRequestLine should be .css")
 	}
+
+	if retrieveTypeRequestLine("/test.jpg") != ".jpg" {
+		t.Fatal("retrieveTypeRequestLine should be .jpg")
+	}
 }
