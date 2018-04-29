@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"httpserver/service"
 	"net"
-	"os"
 	"regexp"
 )
 
@@ -73,6 +72,5 @@ func HandleConnection(conn *net.TCPConn) {
 func checkError(err error) {
 	if err != nil {
 		fmt.Printf("fatal: error %s\n", err.Error())
-		os.Exit(1)
 	}
 }
