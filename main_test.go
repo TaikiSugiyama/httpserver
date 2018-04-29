@@ -26,4 +26,8 @@ func TestRetrieveTypeRequestLine(t *testing.T) {
 	if retrieveTypeRequestLine("/test.html") != ".html" {
 		t.Fatal("retrieveTypeRequestLine should be .html")
 	}
+
+	if retrieveTypeRequestLine("/test.css") != ".css" {
+		t.Fatal("retrieveTypeRequestLine should be .css")
+	}
 }
