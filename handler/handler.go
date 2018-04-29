@@ -64,7 +64,12 @@ func HandleConnection(conn *net.TCPConn) {
 	ver = service.RetrieveVersionRequestLine(requestArray[0])
 	fmt.Println(contentType)
 
-	service.ReturnResponse(conn, method, uri, ver, contentType)
+	array := service.ReturnResponse(method, uri, ver, contentType)
+
+	for _, v := range array {
+		_, err := conn.Write([]byte(v))
+		checkError(err)
+	}
 
 	fmt.Println("<<<< end")
 }

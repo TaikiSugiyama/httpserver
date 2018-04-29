@@ -3,11 +3,10 @@ package service
 import (
 	"fmt"
 	"io/ioutil"
-	"net"
 	"os"
 )
 
-func ReturnResponse(conn *net.TCPConn, method string, uri string, ver string, contentType string) {
+func ReturnResponse(method string, uri string, ver string, contentType string) (responseArray []string) {
 	pwd, _ := os.Getwd()
 	filePath := pwd + "/www" + uri
 
@@ -16,79 +15,62 @@ func ReturnResponse(conn *net.TCPConn, method string, uri string, ver string, co
 		if err != nil {
 			fmt.Println("Recover!:", err)
 
-			_, err = conn.Write([]byte(ver + " 500 Internal Server Error\n"))
-			_, err = conn.Write([]byte("Content-Type: text/html \n"))
-			_, err = conn.Write([]byte("\n"))
-			_, err = conn.Write([]byte("<html><head><h1>Internal Server Error</h1></head></html>"))
-
+			responseArray = append(responseArray, ver+" 500 Internal Server Error\n")
+			responseArray = append(responseArray, "Content-Type: text/html \n")
+			responseArray = append(responseArray, "\n")
+			responseArray = append(responseArray, "<html><head><h1>Internal Server Error</h1></head></html>")
 		}
 	}()
 
 	switch method {
 	case "GET":
 		if _, err := os.Stat(filePath); err != nil {
-			checkError(err, ver, conn)
-			body, err := ioutil.ReadFile(pwd + "/notfound.html")
-			checkError(err, ver, conn)
-			_, err = conn.Write([]byte(ver + " 404 Not Found\n"))
-			checkError(err, ver, conn)
+			checkError(err)
 
-			// header
-			_, err = conn.Write([]byte("Content-Type: " + contentType + "\n"))
-			checkError(err, ver, conn)
-			_, err = conn.Write([]byte("\n"))
-			checkError(err, ver, conn)
+			body, err := ioutil.ReadFile(pwd + "/www/notfound.html")
+			checkError(err)
 
-			// body
-			_, err = conn.Write([]byte(body))
-			checkError(err, ver, conn)
-			break
+			responseArray = append(responseArray, ver+" 404 Not Found\n")
+			responseArray = append(responseArray, "Content-Type: "+contentType+"\n")
+			responseArray = append(responseArray, "\n")
+			responseArray = append(responseArray, string(body))
+			return responseArray
 		}
 
 		body, err := ioutil.ReadFile(filePath)
-
 		// panic("Panic!")
-		checkError(err, ver, conn)
-		// status line
-		_, err = conn.Write([]byte(ver + " 200 OK\n"))
-		checkError(err, ver, conn)
+		checkError(err)
 
-		// header
-		_, err = conn.Write([]byte("Content-Type: " + contentType + "\n"))
-		checkError(err, ver, conn)
-		_, err = conn.Write([]byte("\n"))
-		checkError(err, ver, conn)
-
-		// body
-		_, err = conn.Write([]byte(body))
-		checkError(err, ver, conn)
+		responseArray = append(responseArray, ver+" 200 OK\n")
+		responseArray = append(responseArray, "Content-Type: "+contentType+"\n")
+		responseArray = append(responseArray, "\n")
+		responseArray = append(responseArray, string(body))
 	case "HEAD":
 		if _, err := os.Stat(filePath); err != nil {
 			body, err := ioutil.ReadFile(pwd + "/notfound.html")
-			checkError(err, ver, conn)
-			_, err = conn.Write([]byte(ver + " 404 Not Found\n"))
-			_, err = conn.Write([]byte("\n"))
-			_, err = conn.Write([]byte(body))
-			checkError(err, ver, conn)
-			break
+			checkError(err)
+
+			responseArray = append(responseArray, ver+" 404 Not Found\n")
+			responseArray = append(responseArray, "\n")
+			responseArray = append(responseArray, string(body))
+			return responseArray
 		}
 		body, err := ioutil.ReadFile(filePath)
-		checkError(err, ver, conn)
+		checkError(err)
 		// status line
-		_, err = conn.Write([]byte(ver + " 200 OK\n"))
-		checkError(err, ver, conn)
-		_, err = conn.Write([]byte("\n"))
-		checkError(err, ver, conn)
-		_, err = conn.Write([]byte(body))
-		checkError(err, ver, conn)
+		responseArray = append(responseArray, ver+" 200 OK\n")
+		responseArray = append(responseArray, "\n")
+		responseArray = append(responseArray, string(body))
 	default:
-		_, err := conn.Write([]byte(ver + " 405 Method Not Allowed\n"))
-		checkError(err, ver, conn)
+		responseArray = append(responseArray, ver+" 405 Method Not Allowed\n")
+		responseArray = append(responseArray, "\n")
+		responseArray = append(responseArray, "<html><head><h1>Internal Server Error</h1></head></html>")
 		fmt.Println(method)
 	}
+	return responseArray
 }
 
-func checkError(err error, ver string, conn *net.TCPConn) {
+func checkError(err error) {
 	if err != nil {
 		fmt.Printf("fatal: error %s\n", err)
 	}
