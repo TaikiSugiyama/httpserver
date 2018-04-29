@@ -9,7 +9,7 @@ import (
 
 func ReturnResponse(conn *net.TCPConn, method string, uri string, ver string, contentType string) {
 	pwd, _ := os.Getwd()
-	filePath := pwd + uri
+	filePath := pwd + "/www" + uri
 
 	defer func() {
 		err := recover()
@@ -17,7 +17,6 @@ func ReturnResponse(conn *net.TCPConn, method string, uri string, ver string, co
 			fmt.Println("Recover!:", err)
 
 			_, err = conn.Write([]byte(ver + " 500 Internal Server Error\n"))
-
 			_, err = conn.Write([]byte("Content-Type: text/html \n"))
 			_, err = conn.Write([]byte("\n"))
 			_, err = conn.Write([]byte("<html><head><h1>Internal Server Error</h1></head></html>"))
@@ -65,7 +64,11 @@ func ReturnResponse(conn *net.TCPConn, method string, uri string, ver string, co
 		checkError(err, ver, conn)
 	case "HEAD":
 		if _, err := os.Stat(filePath); err != nil {
+			body, err := ioutil.ReadFile(pwd + "/notfound.html")
+			checkError(err, ver, conn)
 			_, err = conn.Write([]byte(ver + " 404 Not Found\n"))
+			_, err = conn.Write([]byte("\n"))
+			_, err = conn.Write([]byte(body))
 			checkError(err, ver, conn)
 			break
 		}
