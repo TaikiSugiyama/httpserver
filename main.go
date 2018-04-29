@@ -85,6 +85,13 @@ func handleConnection(conn *net.TCPConn) {
 	var contentType string
 	var ver string
 	var requestArray []string
+	typeMap := map[string]string{
+		"html": "text/html",
+		"css":  "text/css",
+		"jpg":  "image/jpeg",
+		"jpeg": "image/jpeg",
+		"gif":  "image/gif",
+	}
 
 	for _, v := range regexp.MustCompile("\r\n|\n\r|\n|\r").Split(line, -1) {
 		requestArray = append(requestArray, v)
@@ -92,7 +99,7 @@ func handleConnection(conn *net.TCPConn) {
 
 	method = retrieveMethodRequestLine(requestArray[0])
 	uri = retrieveURIRequestLine(requestArray[0])
-	contentType = retrieveTypeRequestLine(uri)
+	contentType = typeMap[retrieveTypeRequestLine(uri)]
 	ver = retrieveVersionRequestLine(requestArray[0])
 	fmt.Println(contentType)
 
