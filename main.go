@@ -55,7 +55,7 @@ func retrieveVersionRequestLine(line string) (ver string) {
 func retrieveTypeRequestLine(uri string) (extension string) {
 	start := strings.LastIndex(uri, ".")
 	r := []rune(uri)
-	return string(r[start:])
+	return string(r[start+1:])
 }
 
 // func retrieveContentLength(line string) {
@@ -94,6 +94,7 @@ func handleConnection(conn *net.TCPConn) {
 	uri = retrieveURIRequestLine(requestArray[0])
 	contentType = retrieveTypeRequestLine(uri)
 	ver = retrieveVersionRequestLine(requestArray[0])
+	fmt.Println(contentType)
 
 	returnResponse(conn, method, uri, ver, contentType)
 
@@ -101,12 +102,26 @@ func handleConnection(conn *net.TCPConn) {
 }
 
 func returnResponse(conn *net.TCPConn, method string, uri string, ver string, contentType string) {
+
+	pwd, _ := os.Getwd()
+	filePath := pwd + uri
 	switch method {
 	case "GET":
-		filePath, _ := os.Getwd()
-		filePath = filePath + uri
 		if _, err := os.Stat(filePath); err != nil {
-			fmt.Println("no such file: ", err)
+			_, err := conn.Write([]byte(ver + " 404 Not Found\n"))
+			checkError(err)
+
+			// header
+			_, err = conn.Write([]byte("Content-Type: " + contentType + "\n"))
+			checkError(err)
+			_, err = conn.Write([]byte("\n"))
+			checkError(err)
+
+			// body
+			body, err := ioutil.ReadFile(pwd + "/notfound.html")
+			checkError(err)
+			_, err = conn.Write([]byte(body))
+			checkError(err)
 			break
 		}
 
@@ -126,7 +141,7 @@ func returnResponse(conn *net.TCPConn, method string, uri string, ver string, co
 		_, err = conn.Write([]byte(body))
 		checkError(err)
 	default:
-		_, err := conn.Write([]byte("<h1>default</h1>\n"))
+		_, err := conn.Write([]byte(ver + " 405 Method Not Allowed\n"))
 		checkError(err)
 		fmt.Println(method)
 	}
