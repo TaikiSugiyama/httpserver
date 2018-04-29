@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
+	"httpserver/handler"
 	"net"
 	"os"
-
-	"httpserver/handler"
 )
 
 func main() {

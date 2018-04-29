@@ -25,10 +25,7 @@ func HandleListener(listener *net.TCPListener) error {
 	}
 }
 
-func HandleConnection(conn *net.TCPConn) {
-	defer conn.Close()
-	fmt.Println("start >>>")
-
+func readLine(conn *net.TCPConn) string {
 	lineBuf := make([]byte, 1024)
 	lineLen, err := conn.Read(lineBuf)
 	checkError(err)
@@ -37,6 +34,13 @@ func HandleConnection(conn *net.TCPConn) {
 
 	// read確認用
 	fmt.Println(line)
+	return line
+}
+
+func HandleConnection(conn *net.TCPConn) {
+	defer conn.Close()
+	fmt.Println("start >>>")
+	line := readLine(conn)
 
 	var method string
 	var uri string
