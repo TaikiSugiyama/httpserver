@@ -39,7 +39,16 @@ func ReturnResponse(method string, uri string, ver string, contentType string) (
 
 		body, err := ioutil.ReadFile(filePath)
 		// panic("Panic!")
-		checkError(err)
+		// checkError(err)
+
+		if err != nil {
+			var responseError []string
+			responseError = append(responseError, "HTTP1.0 404 Not Foundr\n")
+			responseError = append(responseError, "Content-Type: text/html \n")
+			responseError = append(responseError, "\n")
+			responseError = append(responseError, "<html><head><h1>Not Found</h1></head></html>")
+			return responseError
+		}
 
 		responseArray = append(responseArray, ver+" 200 OK\n")
 		responseArray = append(responseArray, "Content-Type: "+contentType+"\n")
@@ -47,20 +56,13 @@ func ReturnResponse(method string, uri string, ver string, contentType string) (
 		responseArray = append(responseArray, string(body))
 	case "HEAD":
 		if _, err := os.Stat(filePath); err != nil {
-			body, err := ioutil.ReadFile(pwd + "/notfound.html")
-			checkError(err)
-
 			responseArray = append(responseArray, ver+" 404 Not Found\n")
 			responseArray = append(responseArray, "\n")
-			responseArray = append(responseArray, string(body))
 			return responseArray
 		}
-		body, err := ioutil.ReadFile(filePath)
-		checkError(err)
 		// status line
 		responseArray = append(responseArray, ver+" 200 OK\n")
 		responseArray = append(responseArray, "\n")
-		responseArray = append(responseArray, string(body))
 	default:
 		responseArray = append(responseArray, ver+" 405 Method Not Allowed\n")
 		responseArray = append(responseArray, "\n")
