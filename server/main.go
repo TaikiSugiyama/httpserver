@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"httpserver/handler"
+	"httpserver/server/handler"
 	"net"
 	"os"
 )

@@ -8,7 +8,7 @@ import (
 
 func ReturnResponse(method string, uri string, ver string, contentType string) (responseArray []string) {
 	pwd, _ := os.Getwd()
-	filePath := pwd + "/www" + uri
+	filePath := pwd + "/../public" + uri
 
 	defer func() {
 		err := recover()
@@ -26,20 +26,16 @@ func ReturnResponse(method string, uri string, ver string, contentType string) (
 	case "GET":
 		if _, err := os.Stat(filePath); err != nil {
 			checkError(err)
-
-			body, err := ioutil.ReadFile(pwd + "/www/notfound.html")
-			checkError(err)
-
 			responseArray = append(responseArray, ver+" 404 Not Found\n")
 			responseArray = append(responseArray, "Content-Type: "+contentType+"\n")
 			responseArray = append(responseArray, "\n")
-			responseArray = append(responseArray, string(body))
+			responseArray = append(responseArray, "<html><head><h1>Not Found</h1></head></html>")
 			return responseArray
 		}
 
 		body, err := ioutil.ReadFile(filePath)
 		// panic("Panic!")
-		// checkError(err)
+		checkError(err)
 
 		if err != nil {
 			var responseError []string

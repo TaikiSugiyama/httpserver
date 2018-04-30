@@ -1,7 +1,7 @@
 package test
 
 import (
-	"httpserver/service"
+	"httpserver/server/service"
 	"testing"
 )
 

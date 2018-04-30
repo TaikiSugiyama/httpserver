@@ -11,6 +11,9 @@ func RetrieveMethodRequestLine(line string) (method string) {
 
 func RetrieveURIRequestLine(line string) (uri string) {
 	split := strings.Split(line, " ")
+	if split[1] == "/" {
+		split[1] = "/index.html"
+	}
 	return split[1]
 }
 

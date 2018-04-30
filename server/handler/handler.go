@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"httpserver/service"
+	"httpserver/server/service"
 	"net"
 	"regexp"
 )
@@ -38,7 +38,6 @@ func readLine(conn *net.TCPConn) string {
 
 func HandleConnection(conn *net.TCPConn) {
 	defer conn.Close()
-	fmt.Println("start >>>")
 	line := readLine(conn)
 
 	var method string
@@ -58,8 +57,11 @@ func HandleConnection(conn *net.TCPConn) {
 		requestArray = append(requestArray, v)
 	}
 
+	fmt.Println(requestArray[0])
+
 	method = service.RetrieveMethodRequestLine(requestArray[0])
 	uri = service.RetrieveURIRequestLine(requestArray[0])
+	fmt.Println(uri)
 	contentType = typeMap[service.RetrieveTypeRequestLine(uri)]
 	ver = service.RetrieveVersionRequestLine(requestArray[0])
 	fmt.Println(contentType)
@@ -71,7 +73,6 @@ func HandleConnection(conn *net.TCPConn) {
 		checkError(err)
 	}
 
-	fmt.Println("<<<< end")
 }
 
 func checkError(err error) {
